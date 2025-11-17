@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美国时区及各州分布</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a3a, #2c3e50);
+            color: #ecf0f1;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(52, 73, 94, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            color: #ecf0f1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 1100px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .current-time {
+            background: rgba(52, 73, 94, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .time-display {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin: 15px 0;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            color: #3498db;
+        }
+        
+        .date-display {
+            font-size: 1.2rem;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .timezone-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        
+        .timezone-card {
+            background: rgba(52, 73, 94, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .timezone-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .timezone-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+        }
+        
+        .timezone-card.eastern::before { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+        .timezone-card.central::before { background: linear-gradient(90deg, #f1c40f, #f39c12); }
+        .timezone-card.pacific::before { background: linear-gradient(90deg, #3498db, #2980b9); }
+        .timezone-card.mountain::before { background: linear-gradient(90deg, #2ecc71, #27ae60); }
+        .timezone-card.mountain-arizona::before { background: linear-gradient(90deg, #2ecc71, #27ae60); }
+        .timezone-card.alaska::before { background: linear-gradient(90deg, #1abc9c, #16a085); }
+        .timezone-card.hawaii::before { background: linear-gradient(90deg, #9b59b6, #8e44ad); }
+        .timezone-card.atlantic::before { background: linear-gradient(90deg, #e67e22, #d35400); }
+        
+        .timezone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .timezone-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .timezone-abbr {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .time-display-small {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 10px 0;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            color: #3498db;
+        }
+        
+        .time-details {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        
+        .states-container {
+            margin-top: 15px;
+        }
+        
+        .states-title {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #3498db;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .states-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .state-item {
+            padding: 5px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        
+        .state-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .daylight-saving {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #e74c3c;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-left: 10px;
+        }
+        
+        .daylight-saving.inactive {
+            background: #7f8c8d;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            opacity: 0.8;
+            font-size: 0.95rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .last-updated {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 0.95rem;
+            opacity: 0.8;
+        }
+        
+        .difference {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            opacity: 0.9;
+            text-align: center;
+        }
+        
+        .search-box {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .search-box input {
+            width: 100%;
+            max-width: 500px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .priority-timezones {
+            margin-bottom: 30px;
+        }
+        
+        .priority-timezones h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ecf0f1;
+            font-size: 1.8rem;
+        }
+        
+        .priority-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .priority-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .timezone-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .time-display {
+                font-size: 1.8rem;
+            }
+            
+            .states-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-clock"></i> 美国时区及各州分布</h1>
+            <p class="subtitle">实时显示美国各时区时间、包含的州和地区，以及夏令时状态</p>
+        </header>
+        
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="搜索州或时区...">
+        </div>
+        
+        <div class="dashboard">
+            <div class="current-time">
+                <h2><i class="fas fa-globe-americas"></i> 当前本地时间</h2>
+                <div class="date-display" id="local-date">-- --- ----</div>
+                <div id="local-time" class="time-display">--:--:--</div>
+                <div class="difference" id="local-difference">相对于UTC: --:--</div>
+                
+                <div class="controls">
+                    <button id="refresh-btn"><i class="fas fa-sync-alt"></i> 刷新时间</button>
+                    <button id="theme-btn"><i class="fas fa-palette"></i> 切换主题</button>
+                </div>
+            </div>
+            
+            <div class="current-time">
+                <h2><i class="fas fa-info-circle"></i> 关于美国时区</h2>
+                <p>美国本土从西到东分为四个主要时区：太平洋时间、山地时间、中部时间和东部时间。</p>
+                <p>阿拉斯加和夏威夷有各自的时区。亚利桑那州大部分地区不实行夏令时。</p>
+                <p>夏令时从3月第二个星期日开始，到11月第一个星期日结束。</p>
+            </div>
+        </div>
+        
+        <div class="last-updated">最后更新: <span id="last-updated">--:--:--</span></div>
+        
+        <!-- 优先显示的时区（东部和中部） -->
+        <div class="priority-timezones">
+            <h2><i class="fas fa-star"></i> 主要时区</h2>
+            <div class="priority-grid" id="priority-container">
+                <!-- 东部和中部时区将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 其他时区 -->
+        <h2 style="text-align: center; margin: 30px 0 20px 0;"><i class="fas fa-map"></i> 其他时区</h2>
+        <div class="timezone-grid" id="timezone-container">
+            <!-- 其他时区卡片将通过JavaScript动态生成 -->
+        </div>
+        
+        <footer>
+            <p><i class="fas fa-exclamation-circle"></i> 注意：亚利桑那州（大部分地区）和夏威夷州不实行夏令时</p>
+            <p>© 2023 美国时区查看工具 | 数据实时更新</p>
+        </footer>
+    </div>
+
+    <script>
+        // 详细的时区数据，包含各州信息，东部和中部放在前面
+        const timezones = [
+            {
+                id: 'eastern',
+                name: '东部时间',
+                iana: 'America/New_York',
+                abbreviation: 'EDT',
+                cities: '纽约, 华盛顿, 迈阿密',
+                usesDST: true,
+                difference: '比北京时间晚12小时',
+                states: ['纽约', '佛罗里达', '马萨诸塞', '宾夕法尼亚', '俄亥俄', '密歇根', '印第安纳', '乔治亚', '北卡罗来纳', '南卡罗来纳', '弗吉尼亚', '马里兰', '新泽西', '康涅狄格', '罗德岛', '新罕布什尔', '佛蒙特', '缅因', '西弗吉尼亚', '肯塔基', '特拉华'],
+                priority: true
+            },
+            {
+                id: 'central',
+                name: '中部时间',
+                iana: 'America/Chicago',
+                abbreviation: 'CDT',
+                cities: '芝加哥, 休斯顿, 达拉斯',
+                usesDST: true,
+                difference: '比北京时间晚13小时',
+                states: ['伊利诺伊', '德克萨斯', '明尼苏达', '威斯康星', '密苏里', '田纳西', '阿拉巴马', '密西西比', '路易斯安那', '阿肯色', '俄克拉荷马', '堪萨斯', '内布拉斯加', '南达科他', '北达科他', '爱荷华'],
+                priority: true
+            },
+            {
+                id: 'pacific',
+                name: '太平洋时间',
+                iana: 'America/Los_Angeles',
+                abbreviation: 'PDT',
+                cities: '洛杉矶, 旧金山, 西雅图',
+                usesDST: true,
+                difference: '比北京时间晚15小时',
+                states: ['加利福尼亚', '华盛顿', '俄勒冈', '内华达'],
+                priority: false
+            },
+            {
+                id: 'mountain',
+                name: '山地时间',
+                iana: 'America/Denver',
+                abbreviation: 'MDT',
+                cities: '丹佛, 盐湖城',
+                usesDST: true,
+                difference: '比北京时间晚14小时',
+                states: ['科罗拉多', '犹他', '怀俄明', '蒙大拿', '新墨西哥', '爱达荷'],
+                priority: false
+            },
+            {
+                id: 'mountain-arizona',
+                name: '山地时间 (亚利桑那)',
+                iana: 'America/Phoenix',
+                abbreviation: 'MST',
+                cities: '凤凰城',
+                usesDST: false,
+                difference: '比北京时间晚15小时',
+                states: ['亚利桑那'],
+                priority: false
+            },
+            {
+                id: 'alaska',
+                name: '阿拉斯加时间',
+                iana: 'America/Anchorage',
+                abbreviation: 'AKDT',
+                cities: '安克雷奇',
+                usesDST: true,
+                difference: '比北京时间晚16小时',
+                states: ['阿拉斯加'],
+                priority: false
+            },
+            {
+                id: 'hawaii',
+                name: '夏威夷-阿留申时间',
+                iana: 'Pacific/Honolulu',
+                abbreviation: 'HST',
+                cities: '檀香山',
+                usesDST: false,
+                difference: '比北京时间晚18小时',
+                states: ['夏威夷'],
+                priority: false
+            },
+            {
+                id: 'atlantic',
+                name: '大西洋时间',
+                iana: 'America/Puerto_Rico',
+                abbreviation: 'AST',
+                cities: '圣胡安',
+                usesDST: false,
+                difference: '比北京时间晚12小时',
+                states: ['波多黎各', '美属维尔京群岛'],
+                priority: false
+            }
+        ];
+
+        // 初始化时区卡片
+        function initTimezoneCards() {
+            const priorityContainer = document.getElementById('priority-container');
+            const container = document.getElementById('timezone-container');
+            
+            priorityContainer.innerHTML = '';
+            container.innerHTML = '';
+            
+            timezones.forEach(tz => {
+                const card = createTimezoneCard(tz);
+                
+                if (tz.priority) {
+                    priorityContainer.appendChild(card);
+                } else {
+                    container.appendChild(card);
+                }
+            });
+        }
+
+        // 创建时区卡片
+        function createTimezoneCard(tz) {
+            const card = document.createElement('div');
+            card.className = `timezone-card ${tz.id}`;
+            
+            card.innerHTML = `
+                <div class="timezone-header">
+                    <div class="timezone-name">${tz.name}</div>
+                    <div class="timezone-abbr">${tz.abbreviation}</div>
+                </div>
+                <div class="time-display-small" id="${tz.id}-time">--:--:--</div>
+                <div id="${tz.id}-date">-- --- ----</div>
+                <div class="difference">${tz.difference}</div>
+                
+                <div class="time-details">
+                    <span><i class="fas fa-city"></i> ${tz.cities}</span>
+                    <span class="daylight-saving ${tz.usesDST ? '' : 'inactive'}">
+                        <i class="fas ${tz.usesDST ? 'fa-sun' : 'fa-moon'}"></i>
+                        ${tz.usesDST ? '使用夏令时' : '无夏令时'}
+                    </span>
+                </div>
+                
+                <div class="states-container">
+                    <div class="states-title">
+                        <i class="fas fa-map-marked-alt"></i> 包含的州和地区
+                    </div>
+                    <div class="states-list" id="${tz.id}-states">
+                        ${tz.states.map(state => `<div class="state-item">${state}</div>`).join('')}
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // 使用Intl API获取准确的时区时间
+        function getTimeInTimezone(timezone) {
+            try {
+                const formatter = new Intl.DateTimeFormat('zh-CN', {
+                    timeZone: timezone,
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    weekday: 'short'
+                });
+                
+                const parts = formatter.formatToParts(new Date());
+                const time = parts.find(p => p.type === 'hour').value + ':' + 
+                           parts.find(p => p.type === 'minute').value + ':' + 
+                           parts.find(p => p.type === 'second').value;
+                
+                const weekday = parts.find(p => p.type === 'weekday').value;
+                const month = parts.find(p => p.type === 'month').value;
+                const day = parts.find(p => p.type === 'day').value;
+                const year = parts.find(p => p.type === 'year').value;
+                const date = `${weekday} ${month} ${day} ${year}`;
+                
+                return { time, date };
+            } catch (error) {
+                console.error(`Error getting time for ${timezone}:`, error);
+                return { time: '--:--:--', date: '-- --- ----' };
+            }
+        }
+
+        // 更新时间显示
+        function updateTimes() {
+            const now = new Date();
+            
+            // 更新本地时间
+            document.getElementById('local-time').textContent = 
+                now.toLocaleTimeString('zh-CN', { hour12: false });
+            document.getElementById('local-date').textContent = 
+                now.toLocaleDateString('zh-CN', { 
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            
+            // 更新UTC偏移量
+            const utcOffset = -now.getTimezoneOffset() / 60;
+            document.getElementById('local-difference').textContent = 
+                `相对于UTC: ${utcOffset >= 0 ? '+' : ''}${utcOffset}:00`;
+            
+            // 更新各时区时间
+            timezones.forEach(tz => {
+                const { time, date } = getTimeInTimezone(tz.iana);
+                document.getElementById(`${tz.id}-time`).textContent = time;
+                document.getElementById(`${tz.id}-date`).textContent = date;
+            });
+            
+            // 更新最后更新时间
+            document.getElementById('last-updated').textContent = 
+                now.toLocaleTimeString('zh-CN', { hour12: false });
+        }
+
+        // 搜索功能
+        function setupSearch() {
+            const searchInput = document.getElementById('search-input');
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const cards = document.querySelectorAll('.timezone-card');
+                
+                cards.forEach(card => {
+                    const cardText = card.textContent.toLowerCase();
+                    if (cardText.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // 主题切换
+        function setupThemeToggle() {
+            const themeBtn = document.getElementById('theme-btn');
+            let isDark = true;
+            
+            themeBtn.addEventListener('click', function() {
+                isDark = !isDark;
+                
+                if (isDark) {
+                    document.body.style.background = 'linear-gradient(135deg, #1a2a3a, #2c3e50)';
+                } else {
+                    document.body.style.background = 'linear-gradient(135deg, #4a6572, #344955)';
+                }
+            });
+        }
+
+        // 刷新按钮
+        function setupRefreshButton() {
+            document.getElementById('refresh-btn').addEventListener('click', function() {
+                updateTimes();
+                this.innerHTML = '<i class="fas fa-check"></i> 已刷新';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-sync-alt"></i> 刷新时间';
+                }, 2000);
+            });
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initTimezoneCards();
+            updateTimes();
+            setupSearch();
+            setupThemeToggle();
+            setupRefreshButton();
+            
+            // 每秒更新一次时间
+            setInterval(updateTimes, 1000);
+        });
+    </script>
+</body>
+</html>
